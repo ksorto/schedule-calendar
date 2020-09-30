@@ -1,38 +1,23 @@
 <template>
     <div class="calendar-container container card border-0">
         <div class="calendar  d-flex flex-column">
-            <div class="calendar-header d-flex justify-content-between align-items-center py-3 mb-2">
-                <div class="left-buttons">
-                    <button class="btn btn-link" @click.prevent="movePreviousYear">
-                        <font-awesome-icon :icon="['fas', 'angle-double-left']"/>                    
-                    </button>
-                    <button class="btn btn-link" @click.prevent="movePreviousMonth">
-                        <font-awesome-icon :icon="['fas', 'angle-left']"/>                    
-                    </button>                    
-                </div>
-                <h4>{{ header.label }}</h4>
-                <div class="right-buttons">
-                    <button class="btn btn-link" @click.prevent="moveNextMonth">                    
-                        <font-awesome-icon :icon="['fas', 'angle-right']"/>
-                    </button>
-                    <button class="btn btn-link" @click.prevent="moveNextYear">                    
-                        <font-awesome-icon :icon="['fas', 'angle-double-right']"/>
-                    </button>
-                </div>
-            </div>
+            <calendar-header 
+                :header="header"
+                :movePreviousYear="movePreviousYear"
+                :movePreviousMonth="movePreviousMonth"
+                :moveNextMonth="moveNextMonth"
+                :moveNextYear="moveNextYear">
+            </calendar-header>
 
-            <div class="weeks-container align-self-center">
+            <div class="weeks-container align-self-center w-100">
                 <div class="weeks-in-month week  d-flex flex-row" v-for="(week, indexWeek) in weeks" :key="'week--'+indexWeek">
-                    <div class="day-in-week day card border-0 m-1 d-flex p-2" 
-                        :class="{ 'today' : day.isToday, 'not-in-month' : !day.inMonth }"
-                        style="background-color: #EBF2F7" 
-                        :style="{ width: settings.day.width, height: settings.day.height}" 
+                    <CalendarDay                          
                         v-for="(day, indexDay) in week" 
-                        :key="'d__'+indexDay"
-                        @click="daySelected(day)">                        
-                        <span class="small text-uppercase text-mutted">{{ day['date'].format('ddd') }}</span>
-                        <span class="font-weight-bold" style="font-size: 1.1em">{{ day['date'].format('DD') }}</span>
-                    </div>
+                        :key="'day__'+indexDay"
+                        :day="day"
+                        :settings="settings"
+                        @selected="daySelected(day)">
+                    </CalendarDay>
                     
                 </div>
             </div>
@@ -47,25 +32,27 @@
     import moment from 'moment';
     import VueMoment from 'vue-moment';
 
-    import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-    import { 
-        faAngleDoubleLeft, 
-        faAngleLeft,
-        faAngleDoubleRight,
-        faAngleRight
-    } from '@fortawesome/free-solid-svg-icons'
-    import { library } from '@fortawesome/fontawesome-svg-core'
+    import $ from 'jquery'
+   
+    import CalendarHeader from './components/CalendarHeader';
+    import CalendarDay from './components/Day';
 
     import 'bootstrap/dist/css/bootstrap.min.css'
     import 'jquery/src/jquery.js'
     import 'bootstrap/dist/js/bootstrap.min.js'
 
-    library.add(faAngleDoubleLeft)
-    library.add(faAngleDoubleRight)
-    library.add(faAngleLeft)
-    library.add(faAngleRight)
+    
 
     Vue.use(VueMoment, { moment });
+
+    Vue.directive('day-event-tooltip', function(el, binding){
+        if(binding.value <= 0) return;
+        $(el).tooltip({
+            title: `You have ${binding.value} event(s) today`,
+            placement: binding.arg,
+            trigger: 'hover'             
+        })
+    })
 
     const _daysInMonths = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     const _weekdayLabels = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -77,25 +64,67 @@
         day: _today.getDate(),
     };
     export default {
-        name: "Calendar",
+        name: "VCalendar",
         components: {
-            FontAwesomeIcon
+            CalendarHeader,
+            CalendarDay,
         },
         props: {
             settings: {
                 type: Object,
                 default: () => ({
                     day: {
-                        width: '120px',
-                        height: '100px',
+                        width: '150px',
+                        height: '115px',
                     }
                 })
+            },
+            events: {
+                type: Array
             }
         },
         data () {
             return {
                 month: _todayComps.month,
-                year: _todayComps.year
+                year: _todayComps.year,
+                calendarEvents: [
+                    {
+                        id: 1,
+                        startDate: '2020-09-30',
+                        endDate: moment('2020-09-30'),
+                        title: 'Test Event 1',
+                        url: null,
+                        classes: '',
+                        style: ''
+                    },
+                    {
+                        id: 2,
+                        startDate: '2020-09-30',
+                        endDate: '2020-09-30',
+                        title: 'Test Event 2',
+                        url: null,
+                        classes: '',
+                        style: ''
+                    },
+                    {
+                        id: 3,
+                        startDate: '2020-09-30',
+                        endDate: '2020-09-30',
+                        title: 'Test Event 3',
+                        url: null,
+                        classes: '',
+                        style: ''
+                    },
+                    {
+                        id: 4,
+                        startDate: '2020-09-01',
+                        endDate: '2020-09-07',
+                        title: 'Test Event 10',
+                        url: null,
+                        classes: '',
+                        style: ''
+                    }
+                ]
             }
         },
         computed: {
@@ -159,7 +188,8 @@
                     month: month,
                     year: this.year.toString(),
                     shortYear: this.year.toString().substring(2, 4),
-                    label: month.label + ' ' + this.year,
+                    title: month.label + ' ' + this.year,
+                    date: moment([this.year, this.monthIndex, month.number])
                 };
             },
             // Returns number for first weekday (1-7), starting from Sunday
@@ -214,7 +244,7 @@
                             isToday: day === _todayComps.day && month === _todayComps.month && year === _todayComps.year,
                             isFirstDay: thisMonth && day === 1,
                             isLastDay: thisMonth && day === this.daysInMonth,
-                            events: []
+                            events: this.findEvents(moment([year, month - 1, day]))
                         });
               
                         // We've hit the last day of the month
@@ -258,9 +288,23 @@
             },
             daySelected: function (day) {
                 console.log(day)
-                alert(day.date.format('ddd DD MMM'))
+                // alert(day.date.format('ddd DD MMM'))
                 this.$emit('day-clicked', day);
             },
+            findEvents(date) {
+                console.log('===================================')
+                console.log('date: ', date.format('YYYY-MM-DD'))
+
+                let findedEvents = this.calendarEvents.filter(event => date.isBetween( this.getDateAsString(event.startDate), this.getDateAsString(event.endDate), undefined, '[]'))
+                console.log('Event for ' + date.date() + ':',findedEvents)
+
+                return findedEvents
+            },
+            getDateAsString(date) {
+                if(date instanceof Object)
+                    return date.format('YYYY-MM-DD')
+                return date
+            }
         }
     }
 </script>
@@ -272,8 +316,17 @@
         font-family: 'Montserrat', sans-serif;
     }
     .day {
+        background-color: #EBF2F7;
         cursor: pointer;
         transition: 0.3s;
+        flex: 1 1 0px;
+        overflow: hidden;
+    }
+    .today {        
+        transition: 0.3s;
+        background-color: #fff !important;
+        box-shadow: inset 0px 0px 1px 1px rgba(0,0,0,0.05);
+        color: #03A9F4 !important;
     }
     .not-in-month {
         opacity: 0.4 !important;
@@ -281,5 +334,8 @@
     }
     .day:hover {
         box-shadow: 0 .5rem 1rem rgba(0,0,0,.1)!important;
+    }
+    .day.today:hover {
+        box-shadow: inset 0px 0px 1px 1px rgba(0,0,0,0.05), 0 .5rem 1rem rgba(0,0,0,.1)!important;
     }
 </style>

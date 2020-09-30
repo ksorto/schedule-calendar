@@ -1,7 +1,7 @@
-import ScheduleCalendar from 'ScheduleCalendar'
+import VCalendar from 'VCalendar'
 
 export default {
     install(Vue, options) {
-        Vue.component('v-schedule-calendar', ScheduleCalendar)
+        Vue.component('v-calendar', VCalendar)
     }
 }

@@ -1,11 +1,11 @@
 {
-  "name": "lsh-schedule-calendar",
-  "version": "1.0.0",
-  "description": "LSH custom schedule calendar",
+  "name": "@ksorto/vue-calendar",
+  "version": "1.2.1",
+  "description": "custom schedule calendar",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "vue serve src/ScheduleCalendar.vue",
+    "dev": "vue serve src/VCalendar.vue",
     "build": "bili --name index --plugin vue --vue.css false"
   },
   "keywords": [
@@ -33,5 +33,13 @@
     "moment": "^2.27.0",
     "moment-range": "^1.2.0",
     "vue-moment": "^4.1.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ksorto/schedule-calendar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ksorto/schedule-calendar/issues"
+  },
+  "homepage": "https://github.com/ksorto/schedule-calendar#readme"
 }
